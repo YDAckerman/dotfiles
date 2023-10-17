@@ -1,0 +1,474 @@
+
+#+TITLE: emacs config
+#+AUTHOR: Yoni Ackerman
+#+PROPERTY: header-args :tangle init.el
+#+STARTUP: showeverything
+
+* ABOUT THIS CONFIG
+
+This is my personal emacs configuration. It is a mess. 
+Distrotube's [[[[https://gitlab.com/dwt1/dotfiles/-/raw/master/.config/doom/config.org]]] config] is helping me make it better.
+
+Tangle the current file: C-c C-v t. 
+
+* xterm-color
+
+colors for M-x shell etc.
+
+#+begin_src emacs-lisp
+
+(require 'xterm-color)
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          Melpa
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'package) 
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/") t)
+(when (< emacs-major-version 24)
+  ;; For important compatibility libraries like cl-lib
+  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
+(package-initialize) 
+
+#+end_src
+
+* BEACON
+
+no beacon.
+
+#+begin_src emacs-lisp
+
+;; (beacon-mode 0)
+
+#+end_src
+
+* Elfeed
+
+#+begin_src emacs-lisp
+
+(setq elfeed-feeds
+'(("https://www.cyberdemon.org/feed.xml" tech blog)
+  ("https://status.inreach.garmin.com/history.rss" garmin)
+))
+
+#+end_src
+
+* quick keys to resent window sizes 
+
+  #+begin_src emacs-lisp
+  (global-set-key (kbd "<C-up>") 'enlarge-window)
+  (global-set-key (kbd "<C-down>") 'shrink-window)
+  (global-set-key (kbd "<C-left>") 'enlarge-window-horizontally)
+  (global-set-key (kbd "<C-right>") 'shrink-window-horizontally)
+  #+end_src
+
+* TODO Miscellaneous convenience
+
+i.e. this looks useful and I'm in a rush.
+
+#+begin_src emacs-lisp
+
+  ;; not working
+  (setq top-margin-width 20);
+  (add-hook 'text-mode-hook 'margins)
+
+
+  ;; keybind windows to meta:
+  (setq x-meta-keysym 'super)
+  (setq x-super-keysym 'meta)
+
+  ;; 
+  (setq ess-use-flymake nil)
+
+  ;; stop with the backups
+  (setq make-backup-files nil)
+  (setq auto-save-default nil)
+
+  ;; I've forgotten what this is
+  ;; ;; something dired
+  ;; (require 'neotree)
+  ;; (global-set-key [f8] 'neotree-toggle)
+
+  ;; add the theme of the moment
+  ;; (setq nord-comment-brightness 20) 
+  (load-theme 'monokai-pro t)
+  (set-background-color "#2D2A2E")
+
+  (global-set-key [C-x C-+] 'text-scale-increase)
+  (global-set-key [C-x C--] 'text-scale-decrease)
+
+  ;; I need more rainbows
+  (require 'rainbow-delimiters)
+  (add-hook 'dockerfile-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'terraform-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
+  ;; (add-hook 'ess-mode-hook #'rainbow-delimiters-mode)
+  ;; (add-hook 'R-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'org-mode-hook #'rainbow-delimiters-mode)
+
+  ;; for line-wrapping convenience
+  (global-visual-line-mode t)
+
+  ;; comment-break macro
+  (fset 'comment-break
+        [?# ?# ?\- ?\C-u ?5 ?7 ?# return
+            ?# ?# return
+            ?# ?# ?\- ?\C-u ?5 ?7 ?# ])
+
+  ;; comment-break macro
+  (fset 'section-break
+        [?# ?# ?\- ?\C-u ?7 ?7 ?# return
+            ?# ?# return
+            ?# ?# ?\- ?\C-u ?7 ?7 ?# ])
+
+  ;; iterator macro
+  (fset 'iterator
+        [?\C-x ?\C-k tab return])
+
+  ;; reset iterator macro
+  (fset 'reset-iterator
+     [?\C-x ?\C-k ?\C-c ?0 return])
+
+  ;; highlight the current line
+  (setq-default hl-mode t)
+
+  ;; go straight to an empty buffer
+  (setq  inhibit-startup-message t)
+
+  (setq-default indent-tabs-mode nil)
+  (define-key text-mode-map (kbd "<tab>") 'tab-to-tab-stop)
+  (setq-default tab-stop-list (number-sequence 4 120 4))
+  (setq-default tab-width 4)
+
+  ;;set CUA mode
+  (cua-selection-mode t)
+
+  ;;automatic linum mode
+  ;; (global-linum-mode t)
+
+  ;;Programming conveniences:
+  (show-paren-mode t); light-up matching parens
+  (global-font-lock-mode t) ; turn on syntax highlighting
+  (setq text-mode-hook (quote (turn-on-auto-fill text-mode-hook-identify)))
+
+  ;; turn on automatic bracket insertion by pairs. New in emacs 24
+  (electric-pair-mode 1)
+
+  ;; clean a line in latex
+  (fset 'clean-line
+        (lambda (&optional arg) "Keyboard macro."
+          (interactive "p")
+          (kmacro-exec-ring-item (quote ([14 backspace 5 32] 0 "%d")) arg)))
+
+  ;; make electric-pair-mode work on more brackets
+  (setq electric-pair-pairs '(
+                              (?\" . ?\")
+                              (?\{ . ?\}) ) )
+
+  ;; remove interface bars to look BA
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+  (menu-bar-mode -1)
+
+  ;; frame title?
+  (setq frame-title-format '("" "%b @ Emacs " emacs-version))
+
+  ;; delete selection as in standard text editing
+  (delete-selection-mode 1)
+
+  ;; keyboard macro to insert skeleton for R documentation
+  (fset 'R-fundocs
+     (lambda (&optional arg) "Keyboard macro." (interactive "p") (
+     kmacro-exec-ring-item (quote (
+     [35 39 32 70 117 110 99 116 105 111 110 32 78 97 109 101 return 
+     return 70 117 110 99 116 105 111 110 32 68 101 115 99 114 105 
+     112 116 105 111 110 return 64 112 97 114 97 109 return 64 107 
+     101 121 119 111 114 100 115 return 64 101 120 112 111 114 116 
+     return 64 101 120 97 109 112 108 101 115] 0 "%d")) arg)))
+
+  ;; display time
+  (display-time-mode 1)
+
+  ;; set the default size to be a little larger
+  (set-face-attribute 'default nil :height 120)
+
+  ;; when switching between different editors the c-z = undo
+  ;; and emac's c-z = suspend frame gets really, really
+  ;; bothersome
+  (global-unset-key (kbd "C-z"))
+
+  (global-set-key (kbd "C-z C-z") 'my-suspend-frame)
+
+  (defun my-suspend-frame ()
+    "In a GUI environment, do nothing; otherwise `suspend-frame'."
+    (interactive)
+    (if (display-graphic-p)
+        (message "suspend-frame disabled for graphical displays.")
+      (suspend-frame)))
+
+#+end_src
+
+* GPT-shell
+
+Since I can use it in emacs, I might as well start figuring it out...
+
+JK
+
+#+begin_src emacs-lisp
+;; (add-to-list 'load-path "~/.emacs.d/chatgpt-shell")
+;; (load "chatgpt-shell.el")
+;; (require 'chatgpt-shell)
+#+end_src
+
+* Start with multiple buffers
+
+Start the emacs session with a fixed buffer arrangement
+
+sources:
+- https://emacs.stackexchange.com/questions/52421/multiple-initial-buffers-in-different-windows
+- https://stackoverflow.com/questions/4987760/how-to-change-size-of-split-screen-emacs-windows
+
+#+begin_src emacs-lisp
+
+  (defun initial-window-setup ()
+  "Do what I want for initial window setup.
+In my case I want to start with 2 windows split side by side."
+  (interactive)
+  (split-window-horizontally)
+  (split-window-horizontally)
+  (balance-windows)
+  (split-window-vertically)
+  (shell))
+
+(add-hook 'emacs-startup-hook #'initial-window-setup)
+  
+#+end_src
+
+
+* ORG MODE
+
+My org mode configuration. Copy pasta from better chefs.
+
+#+begin_src emacs-lisp
+
+(require 'org)
+(require 'org-tempo)
+(require 'org-auto-tangle)
+
+(add-hook 'org-mode 'org-auto-tangle-mode)
+(setq org-auto-tangle-default t)
+(setq org-log-done t)
+
+(global-set-key (kbd "C-c l") #'org-store-link)
+(global-set-key (kbd "C-c a") #'org-agenda)
+(global-set-key (kbd "C-c c") #'org-capture)
+
+(setq org-ellipsis " ▼ "
+        org-superstar-headline-bullets-list '("◉" "●" "○" "◆" "●" "○" "◆")
+        org-superstar-itembullet-alist '((?+ . ?➤) (?- . ?✦)) ; changes +/- symbols in item lists
+        org-log-done 'time
+        org-hide-emphasis-markers t
+)
+
+;; I always forget how to put in a src block
+(define-key org-mode-map (kbd "C-c b") #'org-insert-structure-template)
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          direx
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'direx)
+(global-set-key (kbd "C-x C-j") 'direx:jump-to-directory)
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          lisp functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun my-fixup-whitespace ()
+  (interactive "*")
+  (if (or (eolp)
+ (save-excursion
+   (beginning-of-line)
+   (looking-at "^\\s *$")))
+      (delete-blank-lines)
+    (fixup-whitespace)))
+
+;; clear shell
+(defun clear-shell ()
+   (interactive)
+   (let ((old-max comint-buffer-maximum-size))
+     (setq comint-buffer-maximum-size 0)
+     (comint-truncate-buffer)
+     (setq comint-buffer-maximum-size old-max)))
+
+;; Bring to fullscreen (and new desktop)
+(defun toggle-fullscreen ()
+  "Toggle full screen"
+  (interactive)
+  (set-frame-parameter
+     nil 'fullscreen
+     (when (not (frame-parameter nil 'fullscreen)) 'fullboth)))
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          custom ido settings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq ido-enable-flex-matching t)
+(setq ido-everywhere t)
+(require 'ido)
+(ido-mode 1)
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          ESS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (setq ess-indent-level 2)
+;; (add-to-list 'load-path "/Users/yoni/Documents/Emacs/elisp/ess-16.10/lisp/")
+;; (load "ess-site")
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          Python
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(elpy-enable)
+
+;; (setq python-shell-interpreter "/usr/local/opt/python@3.9/bin/python3.9")
+
+;; tell elpy where virtualenv is
+(setq elpy-rpc-virtualenv-path 'current)
+
+(add-hook 'after-init-hook 'global-company-mode)
+;; (setq lsp-pyls-plugins-pycodestyle-enabled nil)
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          R
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (setq inferior-R-program-name "/usr/local/bin/R")
+
+;; ;; scroll down after input to an R session
+;; (setq comint-prompt-read-only t)
+;; (setq comint-scroll-to-bottom-on-input t)
+;; (setq comint-scroll-to-bottom-on-output t)
+;; (setq comint-move-point-for-output t)
+
+;; ;; keyboard macro to insert skeleton for R documentation
+;; (fset 'R-fundocs
+;;    (lambda (&optional arg) "Keyboard macro." (interactive "p") (
+;;    kmacro-exec-ring-item (quote (
+;;    [35 39 32 70 117 110 99 116 105 111 110 32 78 97 109 101 return
+;;    return 70 117 110 99 116 105 111 110 32 68 101 115 99 114 105
+;;    112 116 105 111 110 return 64 112 97 114 97 109 return 64 107
+;;    101 121 119 111 114 100 115 return 64 101 120 112 111 114 116
+;;    return 64 101 120 97 109 112 108 101 115] 0 "%d")) arg)))
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          Multiple Cursors
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          ace-window
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(global-set-key (kbd "M-P") 'ace-window)
+(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          line length help
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (require 'column-marker)
+;; (add-hook 'R-mode-hook (lambda () (interactive) (column-marker-3 80)))
+;; (add-hook 'Python-mode-hook (lambda () (interactive) (column-marker-3 80)))
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          tramp
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq tramp-default-method "ssh")
+(require 'tramp)
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("7527f3308a83721f9b6d50a36698baaedc79ded9f6d5bd4e9a28a22ab13b3cb1" default))
+ '(ispell-dictionary nil)
+ '(package-selected-packages
+   '(beacon typescript-mode solidity-mode color-theme-buffer-local web-mode rust-mode elpy monokai-pro-theme solarized-theme magit lsp-mode terraform-mode yaml-mode dockerfile-mode monokai-theme company pyvenv-auto dash julia-repl pyenv-mode haskell-mode neotree direx ein rainbow-delimiters polymode nord-theme multiple-cursors markdown-mode column-marker ace-window)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+#+end_src
